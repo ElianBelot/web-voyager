@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "open-voyager"
+version = "0.1.0"
+description = ""
+authors = ["Elian"]
+readme = "README.md"
+packages = [{include = "open_voyager"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.0.224"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.24.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
