@@ -9,6 +9,9 @@ load_dotenv(".env", override=True)
 # API keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Paths
+PROMPTS_PATH = os.path.join("voyager", "prompts")
+
 # Voyager
 MAX_STEPS = 20
 MAX_TASK_ATTEMPTS = 3

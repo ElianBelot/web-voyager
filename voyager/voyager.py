@@ -5,12 +5,12 @@ from voyager.agents.curriculum import CurriculumAgent
 from voyager.agents.skill import SkillManager
 from voyager.environment.environment import Environment
 from voyager.config import MAX_STEPS, MAX_TASK_ATTEMPTS
+from voyager.helpers import title
 
 
 # ==========[ VOYAGER ]==========
 class Voyager:
-    def __init__(self, goal: str):
-        self.goal = goal
+    def __init__(self):
         self.environment = Environment()
         self.curriculum_agent = CurriculumAgent()
         self.action_agent = ActionAgent()
@@ -18,16 +18,15 @@ class Voyager:
         self.skill_manager = SkillManager()
 
     # ==========[ RUN ]==========
-    def run(self):
+    def run(self, goal: str):
         # Set goal
-        self.environment.reset()
-        self.curriculum_agent.set_goal(self.goal)
+        self.curriculum_agent.goal = goal
 
         # TODO: Run until goal is achieved (all tasks completed OR goal-critic satisfied)
         for step in range(MAX_STEPS):
-            # Get next task
+            title(f"STEP {step + 1}/{MAX_STEPS}")
             task = self.curriculum_agent.propose_next_task()
-            print("done!")
+            print(task)
             return
 
             # Attempt task
