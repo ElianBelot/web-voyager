@@ -9,6 +9,8 @@ packages = [{include = "open_voyager"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 langchain = "^0.0.224"
+openai = "^0.27.8"
+python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
