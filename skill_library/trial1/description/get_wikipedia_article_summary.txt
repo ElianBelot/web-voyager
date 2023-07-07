@@ -1,0 +1,2 @@
+def get_wikipedia_article_summary(driver, article_title: str):
+    # This function retrieves the summary of a Wikipedia article by navigating to the article's URL, locating the first paragraph after the initial table, and returning the text within that paragraph.

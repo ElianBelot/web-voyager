@@ -16,3 +16,9 @@ Save to CSV.
 
 # Notes
 - May need to ask user for API key, can either interact with user or use keyless API
+- For each task, choose to write code, use code, or simply generate text
+
+# NEXT UP
+Switch to web browsing, works better with Voyager architecture:
+- Code as action space
+- Environment feedback

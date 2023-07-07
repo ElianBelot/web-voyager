@@ -3,8 +3,8 @@ from voyager.agents.action import ActionAgent
 from voyager.agents.critic import CriticAgent
 from voyager.agents.curriculum import CurriculumAgent
 from voyager.agents.skill import SkillManager
-from voyager.environment.environment import Environment
 from voyager.config import MAX_STEPS, MAX_TASK_ATTEMPTS
+from voyager.environment.environment import Environment
 from voyager.helpers import title
 
 
@@ -25,9 +25,10 @@ class Voyager:
         # TODO: Run until goal is achieved (all tasks completed OR goal-critic satisfied)
         for step in range(MAX_STEPS):
             title(f"STEP {step + 1}/{MAX_STEPS}")
+
+            # TODO: We'll manually set tasks for now since this is mostly prompt engineering
             task = self.curriculum_agent.propose_next_task()
-            print(task)
-            return
+            print(f"[TASK] {task}")
 
             # Attempt task
             code = None
