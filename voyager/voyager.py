@@ -19,14 +19,14 @@ class Voyager:
 
     # ==========[ RUN ]==========
     def run(self, goal: str):
-        # Set goal
+        # TODO: Initialize environment when running, not at initialization
+        # TODO: Get rid of goal, adapt curriculum for internet browsing
+        # TODO: Bring back "agent_state", which env.step() writes to and is used for the critique
         self.curriculum_agent.goal = goal
-
-        # TODO: Run until goal is achieved (all tasks completed OR goal-critic satisfied)
         for step in range(MAX_STEPS):
             title(f"STEP {step + 1}/{MAX_STEPS}")
 
-            # TODO: We'll manually set tasks for now since this is mostly prompt engineering
+            # TODO: We'll manually set tasks for now, before having the AI do it
             task = self.curriculum_agent.propose_next_task()
             print(f"[TASK] {task}")
 

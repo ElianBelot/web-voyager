@@ -1,4 +1,4 @@
-def get_wikipedia_article_summary(driver, article_title: str = "Machine Learning"):
+def get_wikipedia_article_summary(driver, article_title: str):
     # Navigate to the article
     url = f"https://en.wikipedia.org/wiki/{article_title}"
     print("Navigating to URL:", url)

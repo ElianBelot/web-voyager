@@ -1,3 +1,4 @@
+# ==========[ IMPORTS ]==========
 import contextlib
 import io
 import traceback
@@ -26,6 +27,7 @@ class Environment:
         self.driver.quit()
         self.driver = webdriver.Chrome(options=self.chrome_options)
 
+    # TODO: Add all functions in skill library AND control primitives to be ran in the environment
     def step(self, code, arguments: Dict[str, Any] = {}):
         # Generate a namespace for the code to be executed in
         code_output = None
@@ -44,8 +46,8 @@ class Environment:
 
             # Extract the function defined in the code, which should be the only top-level item.
             for value in namespace.values():
+                # Invoke the function, passing the driver as the first argument.
                 if isinstance(value, types.FunctionType):
-                    # Invoke the function, passing the driver as the first argument.
                     try:
                         code_output = value(self.driver, **arguments)
                     except Exception as e:
@@ -53,5 +55,7 @@ class Environment:
 
         # Add the printed text to the log
         log.extend(string_io.getvalue().splitlines())
+
+        # TODO: Handle writing to step, which gets an observation from the current state of the browser
 
         return {"output": code_output, "errors": execution_errors, "log": log}
