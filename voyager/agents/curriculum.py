@@ -1,6 +1,7 @@
 # ==========[ IMPORTS ]==========
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
+
 from voyager.helpers import load_prompt
 
 
@@ -10,7 +11,6 @@ class CurriculumAgent:
         # Hyperparameters
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.1)
         self.mode = "auto"
-        self.goal = ""
 
         # Track tasks
         self.completed_tasks = []
@@ -30,7 +30,6 @@ class CurriculumAgent:
         # Load prompt
         template = load_prompt("curriculum")
         prompt = template.format(
-            goal=self.goal,
             completed_tasks="- \n".join(self.completed_tasks),
             failed_tasks="- \n".join(self.failed_tasks),
         )

@@ -12,25 +12,20 @@ from voyager.helpers import title
 class Voyager:
     def __init__(self):
         self.environment = Environment()
-        self.curriculum_agent = CurriculumAgent()
+        self.curriculum_agent = CurriculumAgent(mode="manual")
         self.action_agent = ActionAgent()
         self.critic_agent = CriticAgent()
         self.skill_manager = SkillManager()
 
     # ==========[ RUN ]==========
-    def run(self, goal: str):
-        # TODO: Initialize environment when running, not at initialization
-        # TODO: Get rid of goal, adapt curriculum for internet browsing
-        # TODO: Bring back "agent_state", which env.step() writes to and is used for the critique
-        self.curriculum_agent.goal = goal
+    def run(self):
+        state = self.environment.start()
         for step in range(MAX_STEPS):
             title(f"STEP {step + 1}/{MAX_STEPS}")
-
-            # TODO: We'll manually set tasks for now, before having the AI do it
-            task = self.curriculum_agent.propose_next_task()
-            print(f"[TASK] {task}")
+            task = self.curriculum_agent.propose_next_task(state)
 
             # Attempt task
+            print(f"[TASK] {task}")
             code = None
             code_output = None
             execution_errors = None
@@ -42,10 +37,11 @@ class Voyager:
                 code = self.action_agent.generate_code(task, code, code_output, execution_errors, critique, skills)
 
                 # Run code
-                code_output, execution_errors = self.environment.step(code)
+                result = self.environment.step(code)
+                # result = {"output": code_output, "errors": execution_errors, "log": log, "observation": self.state}
 
                 # Get feedback
-                success, critique = self.critic_agent.check_task_success(task)
+                success, critique = self.critic_agent.check_task_success(task, result)
                 if success:
                     break
 

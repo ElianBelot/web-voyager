@@ -2,30 +2,17 @@
 import concurrent.futures
 import contextlib
 import io
-import json
-import multiprocessing as mp
 import re
 import time
 import traceback
 import types
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FuturesTimeoutError
 from typing import Any, Dict, List, Optional
-from urllib.parse import urlparse
 
 import selenium
-import validators
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 from unidecode import unidecode
 
 
@@ -38,13 +25,14 @@ class Environment:
         if headless:
             self.chrome_options.add_argument("--headless")
 
-        # Set driver
+    def start(self):
         self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.state = {}
 
     def reset(self):
         # Closes the driver and start a new one
         self.driver.quit()
-        self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.start()
 
     # TODO: Add all functions in skill library AND control primitives to be ran in the environment
     def step(self, code, arguments: Dict[str, Any] = {}):
@@ -76,9 +64,9 @@ class Environment:
         log.extend(string_io.getvalue().splitlines())
 
         # Get the current state
-        observation = self.current_state()
+        self.state = self.current_state()
 
-        return {"output": code_output, "errors": execution_errors, "log": log, "observation": observation}
+        return {"output": code_output, "errors": execution_errors, "log": log, "observation": self.state}
 
     # ==========[ STATE ]==========
     def prettify_text(self, text: str, limit: Optional[int] = None) -> str:
