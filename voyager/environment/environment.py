@@ -1,13 +1,32 @@
 # ==========[ IMPORTS ]==========
+import concurrent.futures
 import contextlib
 import io
+import json
+import multiprocessing as mp
+import re
+import time
 import traceback
 import types
-from typing import Any, Dict
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 import selenium
+import validators
+from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from unidecode import unidecode
 
 
 # ==========[ ENVIRONMENT ]==========
@@ -56,6 +75,93 @@ class Environment:
         # Add the printed text to the log
         log.extend(string_io.getvalue().splitlines())
 
-        # TODO: Handle writing to step, which gets an observation from the current state of the browser
+        # Get the current state
+        observation = self.current_state()
 
-        return {"output": code_output, "errors": execution_errors, "log": log}
+        return {"output": code_output, "errors": execution_errors, "log": log, "observation": observation}
+
+    # ==========[ STATE ]==========
+    def prettify_text(self, text: str, limit: Optional[int] = None) -> str:
+        """Prettify text by removing extra whitespace and converting to lowercase."""
+        text = re.sub(r"\s+", " ", text)
+        text = text.strip().lower()
+        text = unidecode(text)
+        if limit:
+            text = text[:limit]
+        return text
+
+    def get_all_text_elements(self):
+        # get all text from body excluding script and style tags
+        soup = BeautifulSoup(self.driver.page_source, "lxml")
+        for script in soup(["script", "style"]):
+            script.extract()
+        text = soup.get_text()
+        lines = [t.strip() for t in text.splitlines() if t.strip()]
+        return lines[:100]  # Limit to maximum 100 elements
+
+    def get_interactable_elements(self):
+        # get only interactable elements text and id
+        interactable_elements = self.driver.find_elements(
+            By.XPATH,
+            "//button | //div[@role='button'] | //a | //input[@type='submit'] | //input[@type='button']",
+        )
+        interactables = []
+        for element in interactable_elements:
+            if element.text.strip() or element.get_attribute("id"):
+                interactables.append({"id": element.get_attribute("id"), "text": element.text.strip()})
+        return interactables
+
+    def find_form_fields(self):
+        """Find form fields on the website."""
+        fields = []
+        for element in self.driver.find_elements(By.XPATH, "//textarea | //input"):
+            if element.get_attribute("type") not in ["hidden", "submit", "button", "image"]:
+                label_txt = (
+                    element.get_attribute("id") or element.get_attribute("name") or element.get_attribute("aria-label")
+                )
+                if label_txt:
+                    fields.append(self.prettify_text(label_txt))
+        return fields
+
+    # HACK: This is a primitive solution, look into better ways to do fast scraping.
+    # NOTE: Eventually, the agent can figure out how to best describe the website as a first task, and iterate on this as it needs more information.
+    def current_state(self, time_limit=10):
+        # Let driver wait for the website to load
+        time.sleep(1)
+        state = {}
+
+        start_time = time.time()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Submit tasks to the executor
+            future_to_task = {
+                executor.submit(task): task_name
+                for task_name, task in {
+                    "main_content": self.get_all_text_elements,
+                    "interactable_elements": self.get_interactable_elements,
+                    "form_fields": self.find_form_fields,
+                }.items()
+            }
+
+            # Get results as they become available
+            completed_futures = []
+            for future in concurrent.futures.as_completed(future_to_task, timeout=time_limit):
+                task_name = future_to_task[future]
+                try:
+                    result = future.result()
+                    state[task_name] = result
+                    completed_futures.append(future)
+                except Exception as e:
+                    state[task_name] = str(e)
+                    print(f"Task {task_name} did not complete successfully: {str(e)}")
+
+                # Check time limit
+                if time.time() - start_time > time_limit:
+                    print("Time limit exceeded. Returning partial state description.")
+                    break
+
+            # Cancel unfinished futures
+            for future in future_to_task:
+                if future not in completed_futures:
+                    future.cancel()
+
+        return state
