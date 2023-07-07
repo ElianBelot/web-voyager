@@ -4,7 +4,7 @@ from voyager.agents.critic import CriticAgent
 from voyager.agents.curriculum import CurriculumAgent
 from voyager.agents.skill import SkillManager
 from voyager.config import MAX_STEPS, MAX_TASK_ATTEMPTS
-from voyager.environment.environment import Environment
+from voyager.environment import Environment
 from voyager.helpers import title
 
 
@@ -20,7 +20,7 @@ class Voyager:
     # ==========[ RUN ]==========
     def run(self):
         state = self.environment.start()
-        for step in range(MAX_STEPS):
+        for step in range():
             title(f"STEP {step + 1}/{MAX_STEPS}")
             task = self.curriculum_agent.propose_next_task(state)
 

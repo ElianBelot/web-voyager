@@ -1,4 +1,0 @@
-Your task is to interact with a weather API to gather weather information of several cities.
-The cities for this task are Palo Alto, Seoul, and Paris.
-You'll need to choose an API, send relevant requests, parse the JSON responses, extract relevant information, and store these pieces of information in a CSV file.
-Each city's data should be on a separate line with the city's name, temperature, humidity, and weather condition as the column values.
